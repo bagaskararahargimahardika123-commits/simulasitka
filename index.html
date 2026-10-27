@@ -1,0 +1,893 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulasi Ujian TKA/CBT Pusmendik</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Font Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        pusmendik: {
+                            navy: '#1b365d',
+                            blue: '#2b6cb0',
+                            accent: '#f6ad55',
+                            green: '#2f855a',
+                            amber: '#d69e2e',
+                            red: '#e53e3e',
+                            lightBg: '#f0f4f8'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f0f4f8;
+            user-select: none;
+        }
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #edf2f7;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #cbd5e0;
+            border-radius: 4px;
+        }
+        @media print {
+            header, footer, .no-print {
+                display: none !important;
+            }
+            .print-only {
+                display: block !important;
+            }
+            body {
+                background-color: white !important;
+            }
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col justify-between text-gray-800">
+
+    <!-- HEADER SIMULASI TKA/CBT PUSMENDIK -->
+    <header class="bg-pusmendik-navy text-white shadow-md sticky top-0 z-40">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+            <!-- Logo & Title -->
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 rounded-lg bg-white text-pusmendik-navy flex items-center justify-center font-extrabold text-xl shadow">
+                    <i class="fa-solid fa-graduation-cap text-pusmendik-blue"></i>
+                </div>
+                <div>
+                    <h1 class="font-bold text-sm sm:text-base leading-tight tracking-wide uppercase">SIMULASI TKA/CBT PUSMENDIK</h1>
+                    <p id="headerSubTitle" class="text-[11px] text-blue-200">Sistem Evaluasi Berbasis Komputer (30 Soal Cerita)</p>
+                </div>
+            </div>
+
+            <!-- Header Panel Saat Ujian -->
+            <div id="headerExamInfo" class="hidden flex items-center space-x-3 sm:space-x-5">
+                <!-- Size Font Controller -->
+                <div class="hidden sm:flex items-center bg-blue-900/50 rounded-lg p-1 border border-blue-400/30">
+                    <span class="text-[11px] text-blue-200 px-2 font-medium">Ukuran Teks:</span>
+                    <button onclick="changeFontSize(-1)" class="w-7 h-7 rounded hover:bg-blue-700 text-xs font-bold transition">A-</button>
+                    <button onclick="changeFontSize(0)" class="w-7 h-7 rounded hover:bg-blue-700 text-xs font-bold transition">A</button>
+                    <button onclick="changeFontSize(1)" class="w-7 h-7 rounded hover:bg-blue-700 text-xs font-bold transition">A+</button>
+                </div>
+
+                <!-- Toggle Grid Mobile -->
+                <button onclick="toggleGridMobile()" class="lg:hidden bg-pusmendik-blue hover:bg-blue-600 px-3 py-1.5 rounded-lg text-xs font-bold flex items-center space-x-1 border border-blue-400/30">
+                    <i class="fa-solid fa-th-large"></i>
+                    <span>Daftar Soal</span>
+                </button>
+
+                <!-- Timer 75 Menit -->
+                <div id="timerContainer" class="bg-blue-900/80 border border-blue-400/40 px-3 py-1.5 rounded-lg flex items-center space-x-2">
+                    <i class="fa-regular fa-clock text-yellow-300 animate-pulse text-sm"></i>
+                    <span id="timerDisplay" class="font-mono font-bold text-sm tracking-wider text-white">75:00</span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- CONTAINER UTAMA -->
+    <main class="max-w-7xl w-full mx-auto p-3 sm:p-6 flex-grow flex flex-col justify-center">
+
+        <!-- ================= HALAMAN 1: FORM PENDAFTARAN TKA/CBT ================= -->
+        <section id="pageRegistration" class="max-w-2xl w-full mx-auto bg-white rounded-2xl shadow-xl overflow-hidden border border-gray-100 my-auto">
+            <div class="bg-gradient-to-r from-pusmendik-navy to-pusmendik-blue p-6 text-white text-center">
+                <div class="w-14 h-14 bg-white/10 rounded-full flex items-center justify-center mx-auto mb-2 backdrop-blur-sm">
+                    <i class="fa-solid fa-id-card text-3xl text-yellow-400"></i>
+                </div>
+                <h2 class="text-xl font-bold uppercase tracking-wide">Pendaftaran Peserta Ujian TKA/CBT Pusmendik</h2>
+                <p class="text-xs text-blue-100 mt-1">Lengkapi data diri dan pilih paket ujian 30 Soal Cerita Kontekstual</p>
+            </div>
+            
+            <form id="formRegistration" class="p-6 sm:p-8 space-y-5" onsubmit="handleStartExam(event)">
+                <!-- Nama Lengkap -->
+                <div>
+                    <label for="studentName" class="block text-sm font-semibold text-gray-700 mb-1">Nama Lengkap Peserta</label>
+                    <div class="relative">
+                        <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
+                            <i class="fa-solid fa-user"></i>
+                        </span>
+                        <input type="text" id="studentName" required placeholder="Masukkan nama panjang peserta" 
+                            class="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-pusmendik-blue focus:border-pusmendik-blue outline-none transition text-sm">
+                    </div>
+                </div>
+
+                <!-- Asal Sekolah -->
+                <div>
+                    <label for="schoolName" class="block text-sm font-semibold text-gray-700 mb-1">Asal Sekolah / Madrasah</label>
+                    <div class="relative">
+                        <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
+                            <i class="fa-solid fa-school"></i>
+                        </span>
+                        <input type="text" id="schoolName" required placeholder="Contoh: SD Negeri 01 / MTs Negeri 1 / SMA Negeri 2" 
+                            class="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-pusmendik-blue focus:border-pusmendik-blue outline-none transition text-sm">
+                    </div>
+                </div>
+
+                <!-- Tingkat / Jenjang Sekolah -->
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">Jenjang Pendidikan</label>
+                    <div class="grid grid-cols-3 gap-3">
+                        <label class="border-2 rounded-xl p-3 flex flex-col items-center justify-center cursor-pointer hover:bg-blue-50/50 transition border-gray-200 level-option font-medium text-xs sm:text-sm">
+                            <input type="radio" name="level" value="SD/MI" checked class="hidden" onchange="updateLevelUI()">
+                            <i class="fa-solid fa-child text-lg mb-1 text-blue-600"></i>
+                            <span class="font-bold">SD/MI</span>
+                            <span class="text-[10px] text-gray-500">(Opsi A-D)</span>
+                        </label>
+                        <label class="border-2 rounded-xl p-3 flex flex-col items-center justify-center cursor-pointer hover:bg-blue-50/50 transition border-gray-200 level-option font-medium text-xs sm:text-sm">
+                            <input type="radio" name="level" value="SMP/MTs" class="hidden" onchange="updateLevelUI()">
+                            <i class="fa-solid fa-user-graduate text-lg mb-1 text-indigo-600"></i>
+                            <span class="font-bold">SMP/MTs</span>
+                            <span class="text-[10px] text-gray-500">(Opsi A-E)</span>
+                        </label>
+                        <label class="border-2 rounded-xl p-3 flex flex-col items-center justify-center cursor-pointer hover:bg-blue-50/50 transition border-gray-200 level-option font-medium text-xs sm:text-sm">
+                            <input type="radio" name="level" value="SMA/MA" class="hidden" onchange="updateLevelUI()">
+                            <i class="fa-solid fa-building-columns text-lg mb-1 text-purple-600"></i>
+                            <span class="font-bold">SMA/MA</span>
+                            <span class="text-[10px] text-gray-500">(Opsi A-E)</span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Pilihan Mapel & Semester -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label for="selectSubject" class="block text-sm font-semibold text-gray-700 mb-1">Mata Pelajaran</label>
+                        <select id="selectSubject" required class="w-full py-2.5 px-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-pusmendik-blue outline-none text-sm bg-white">
+                            <option value="Matematika">Matematika (100% Soal Cerita)</option>
+                            <option value="Bahasa Indonesia">Bahasa Indonesia</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label for="selectSemester" class="block text-sm font-semibold text-gray-700 mb-1">Semester</label>
+                        <select id="selectSemester" required class="w-full py-2.5 px-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-pusmendik-blue outline-none text-sm bg-white">
+                            <option value="Semester 1">Semester 1</option>
+                            <option value="Semester 2">Semester 2</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="bg-blue-50 border-l-4 border-pusmendik-blue p-3.5 rounded-r-xl text-xs text-blue-900 flex items-start space-x-2">
+                    <i class="fa-solid fa-circle-info mt-0.5 text-pusmendik-blue"></i>
+                    <span><strong>Petunjuk Ujian TKA/CBT:</strong> Jumlah Soal: <strong>30 Soal Cerita</strong> | Waktu Pengerjaan: <strong>75 Menit</strong>. Seluruh jawaban dipilih secara manual per-nomor.</span>
+                </div>
+
+                <button type="submit" class="w-full bg-pusmendik-blue hover:bg-pusmendik-navy text-white font-bold py-3.5 rounded-xl shadow-lg transition duration-200 flex items-center justify-center space-x-2 text-sm">
+                    <span>Mulai Ujian TKA/CBT</span>
+                    <i class="fa-solid fa-arrow-right"></i>
+                </button>
+            </form>
+        </section>
+
+        <!-- ================= HALAMAN 2: INTERFACE CBT UJIAN TKA/CBT ================= -->
+        <section id="pageExam" class="hidden flex-grow flex flex-col lg:flex-row gap-5 my-2">
+            
+            <!-- PANEL SOAL (KIRI) -->
+            <div class="flex-grow bg-white rounded-2xl shadow-md border border-gray-200 flex flex-col justify-between overflow-hidden">
+                
+                <!-- Bar Header Soal -->
+                <div class="bg-gray-50 px-5 py-3 border-b border-gray-200 flex items-center justify-between">
+                    <div class="flex items-center space-x-2">
+                        <span class="bg-pusmendik-navy text-white text-xs font-extrabold px-3 py-1 rounded-lg">SOAL NO</span>
+                        <span id="currentQuestionNumDisplay" class="font-extrabold text-pusmendik-navy text-xl">1</span>
+                        <span class="text-xs text-gray-500 font-semibold">dari 30</span>
+                    </div>
+                    
+                    <div id="displayExamBadge" class="text-xs font-bold text-pusmendik-blue bg-blue-50 px-3 py-1 rounded-full border border-blue-200 hidden sm:block">
+                        SD/MI - Matematika - Semester 1
+                    </div>
+                </div>
+
+                <!-- Isi Soal & Opsi Jawaban -->
+                <div class="p-5 sm:p-7 flex-grow overflow-y-auto custom-scrollbar">
+                    <!-- Teks Soal -->
+                    <div id="questionTextContainer" class="text-gray-800 leading-relaxed mb-6 font-normal transition-all duration-150"></div>
+
+                    <!-- Opsi Jawaban Manual -->
+                    <div id="optionsContainer" class="space-y-3"></div>
+                </div>
+
+                <!-- Navigasi Bawah -->
+                <div class="bg-gray-50 px-5 py-3.5 border-t border-gray-200 flex items-center justify-between flex-wrap gap-2">
+                    <button id="btnPrev" onclick="navigateQuestion(-1)" class="px-4 py-2.5 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-xl font-bold text-xs sm:text-sm flex items-center space-x-2 disabled:opacity-40 disabled:cursor-not-allowed transition">
+                        <i class="fa-solid fa-chevron-left"></i>
+                        <span>Kembali</span>
+                    </button>
+
+                    <label class="flex items-center cursor-pointer bg-amber-100 hover:bg-amber-200 text-amber-900 px-4 py-2.5 rounded-xl font-bold text-xs sm:text-sm transition">
+                        <input type="checkbox" id="chkDoubtful" onchange="toggleDoubtful()" class="w-4 h-4 text-amber-600 rounded focus:ring-amber-500 mr-2">
+                        <span>Ragu-ragu</span>
+                    </label>
+
+                    <button id="btnNext" onclick="navigateQuestion(1)" class="px-5 py-2.5 bg-pusmendik-blue hover:bg-pusmendik-navy text-white rounded-xl font-bold text-xs sm:text-sm flex items-center space-x-2 shadow-md transition">
+                        <span id="btnNextText">Lanjut</span>
+                        <i id="btnNextIcon" class="fa-solid fa-chevron-right"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- PANEL SIDEBAR: DAFTAR 30 SOAL (KANAN) -->
+            <aside id="sidebarGrid" class="hidden lg:flex w-full lg:w-80 bg-white rounded-2xl shadow-md border border-gray-200 p-5 flex-col justify-between">
+                <div>
+                    <div class="flex items-center justify-between mb-4 pb-3 border-b border-gray-200">
+                        <h3 class="font-bold text-gray-800 text-sm flex items-center">
+                            <i class="fa-solid fa-grid-2 mr-2 text-pusmendik-blue"></i> Daftar Soal TKA/CBT
+                        </h3>
+                        <span id="answeredCountBadge" class="bg-blue-100 text-pusmendik-blue text-xs font-bold px-2.5 py-0.5 rounded-full">0/30</span>
+                    </div>
+
+                    <!-- Grid 30 Tombol -->
+                    <div id="questionGrid" class="grid grid-cols-5 gap-2 max-h-80 lg:max-h-none overflow-y-auto custom-scrollbar p-1"></div>
+                </div>
+
+                <!-- Indikator Warna -->
+                <div class="mt-5 pt-4 border-t border-gray-200 text-xs space-y-2">
+                    <div class="font-bold text-gray-600 mb-1">Status Nomor Soal:</div>
+                    <div class="flex items-center space-x-2">
+                        <span class="w-3.5 h-3.5 rounded bg-pusmendik-green inline-block shadow-sm"></span>
+                        <span class="text-gray-600 font-medium">Sudah Dijawab</span>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <span class="w-3.5 h-3.5 rounded bg-amber-400 inline-block shadow-sm"></span>
+                        <span class="text-gray-600 font-medium">Ragu-ragu</span>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <span class="w-3.5 h-3.5 rounded bg-white border border-gray-300 inline-block shadow-sm"></span>
+                        <span class="text-gray-600 font-medium">Belum Dijawab</span>
+                    </div>
+                </div>
+            </aside>
+        </section>
+
+        <!-- ================= HALAMAN 3: HASIL & PEMBAHASAN TKA/CBT ================= -->
+        <section id="pageResult" class="hidden max-w-4xl w-full mx-auto space-y-6 my-auto">
+            
+            <div class="bg-white rounded-2xl shadow-lg border border-gray-200 text-center p-6 sm:p-8">
+                <div class="w-16 h-16 rounded-full bg-blue-50 text-pusmendik-blue flex items-center justify-center mx-auto mb-3 text-3xl shadow-inner">
+                    <i class="fa-solid fa-trophy text-yellow-500"></i>
+                </div>
+                <h2 class="text-2xl font-extrabold text-gray-800 uppercase tracking-wide">Hasil Ujian TKA/CBT Pusmendik</h2>
+                <p id="resultStudentDetail" class="text-xs sm:text-sm text-gray-500 mt-1 font-medium">Nama Peserta | Sekolah | Jenjang</p>
+
+                <!-- Skor Akhir -->
+                <div class="my-6 bg-gradient-to-br from-blue-50 via-indigo-50 to-blue-100 p-6 rounded-2xl border border-blue-200 max-w-xs mx-auto shadow-sm">
+                    <div class="text-[11px] uppercase tracking-widest text-gray-500 font-bold mb-1">Skor Akhir TKA/CBT (0–100)</div>
+                    <div id="finalScore" class="text-5xl font-black text-pusmendik-navy">0</div>
+                    <div id="scorePredicate" class="text-xs font-bold mt-2 px-3 py-1 rounded-full inline-block bg-blue-200 text-pusmendik-navy">
+                        Kategori Kemampuan
+                    </div>
+                </div>
+
+                <!-- Detail Rincian Jawaban -->
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 max-w-lg mx-auto text-center">
+                    <div class="bg-emerald-50 border border-emerald-200 rounded-xl p-3">
+                        <div class="text-[11px] text-emerald-700 font-bold">Benar</div>
+                        <div id="countCorrect" class="text-2xl font-black text-emerald-700">0</div>
+                    </div>
+                    <div class="bg-rose-50 border border-rose-200 rounded-xl p-3">
+                        <div class="text-[11px] text-rose-700 font-bold">Salah</div>
+                        <div id="countWrong" class="text-2xl font-black text-rose-700">0</div>
+                    </div>
+                    <div class="bg-amber-50 border border-amber-200 rounded-xl p-3">
+                        <div class="text-[11px] text-amber-800 font-bold">Ragu-ragu</div>
+                        <div id="countDoubtful" class="text-2xl font-black text-amber-800">0</div>
+                    </div>
+                    <div class="bg-gray-100 border border-gray-200 rounded-xl p-3">
+                        <div class="text-[11px] text-gray-600 font-bold">Kosong</div>
+                        <div id="countEmpty" class="text-2xl font-black text-gray-700">0</div>
+                    </div>
+                </div>
+
+                <div class="mt-6 flex flex-wrap justify-center gap-3 no-print">
+                    <button onclick="window.print()" class="px-5 py-2.5 bg-gray-800 hover:bg-gray-900 text-white font-bold rounded-xl shadow-md transition flex items-center space-x-2 text-xs sm:text-sm">
+                        <i class="fa-solid fa-print"></i>
+                        <span>Cetak Hasil TKA/CBT</span>
+                    </button>
+                    <button onclick="restartExam()" class="px-5 py-2.5 bg-pusmendik-blue hover:bg-pusmendik-navy text-white font-bold rounded-xl shadow-md transition flex items-center space-x-2 text-xs sm:text-sm">
+                        <i class="fa-solid fa-rotate-right"></i>
+                        <span>Ulangi Ujian TKA/CBT</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Pembahasan Lengkap 30 Soal TKA/CBT -->
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-5 sm:p-8">
+                <h3 class="font-extrabold text-lg text-gray-800 mb-6 pb-3 border-b border-gray-200 flex items-center">
+                    <i class="fa-solid fa-file-signature text-pusmendik-blue mr-2 text-xl"></i> Pembahasan Lengkap & Kunci Jawaban (30 Soal Cerita TKA/CBT)
+                </h3>
+                <div id="discussionContainer" class="space-y-5"></div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- FOOTER -->
+    <footer class="bg-white border-t border-gray-200 py-3 text-center text-xs text-gray-500 no-print">
+        <p>&copy; 2026 Simulasi Ujian TKA/CBT Pusmendik. Sistem Evaluasi Kemampuan Akademik Berbasis Komputer.</p>
+    </footer>
+
+    <!-- MODAL KONFIRMASI UJIAN TKA/CBT -->
+    <div id="modalConfirm" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
+        <div class="bg-white rounded-2xl max-w-md w-full p-6 text-center shadow-2xl transform transition-all scale-95 opacity-0 duration-200" id="modalBox">
+            <div class="w-14 h-14 bg-amber-100 text-amber-600 rounded-full flex items-center justify-center mx-auto mb-3 text-2xl">
+                <i class="fa-solid fa-triangle-exclamation"></i>
+            </div>
+            <h3 class="text-lg font-bold text-gray-800 mb-2 uppercase">Selesaikan Ujian TKA/CBT?</h3>
+            <p id="modalConfirmMessage" class="text-xs text-gray-600 mb-6">Pastikan seluruh 30 soal telah diperiksa kembali.</p>
+            <div class="flex space-x-3">
+                <button onclick="closeConfirmModal()" class="flex-1 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold rounded-xl text-xs transition">Batal / Periksa Dulu</button>
+                <button onclick="finishExam()" class="flex-1 py-2.5 bg-pusmendik-blue hover:bg-pusmendik-navy text-white font-bold rounded-xl text-xs transition shadow-md">Ya, Selesai Ujian</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- SCRIPT UTAMA SIMULASI TKA/CBT -->
+    <script>
+        /* ================= STATE APLIKASI ================= */
+        let state = {
+            studentName: '',
+            schoolName: '',
+            level: 'SD/MI',
+            subject: 'Matematika',
+            semester: 'Semester 1',
+            questions: [],
+            userAnswers: [],
+            doubtfulState: [],
+            currentQuestionIndex: 0,
+            timerInterval: null,
+            timeRemaining: 75 * 60,
+            fontSizeLevel: 0
+        };
+
+        /* ================= GENERATOR SOAL CERITA PUSMENDIK (30 SOAL) ================= */
+        function generateExact30Questions(level, subject, semester) {
+            let list = [];
+            const isSD = level === 'SD/MI';
+            const numOptions = isSD ? 4 : 5; // SD = 4 Opsi (A-D), SMP/SMA = 5 Opsi (A-E)
+
+            for (let i = 1; i <= 30; i++) {
+                let qText = "";
+                let options = [];
+                let correct = (i % numOptions);
+                let explanation = "";
+
+                if (subject === 'Matematika') {
+                    // 100% SOAL CERITA NARRATIVE
+                    if (level === 'SD/MI') {
+                        if (semester === 'Semester 1') {
+                            const kantong = i + 2;
+                            const perKantong = 15;
+                            const dibagikan = 20;
+                            const totalAwal = kantong * perKantong;
+                            const sisa = totalAwal - dibagikan;
+                            
+                            qText = `<b>[Soal Cerita No. ${i}]</b> Bu Siti membeli ${kantong} kantong kelereng untuk kegiatan sekolah. Setiap kantong berisi ${perKantong} butir kelereng. Sebelum pembagian, Bu Siti memberikan ${dibagikan} butir kelereng kepada kelompok A. Berapakah sisa kelereng yang dimiliki Bu Siti sekarang?`;
+                            explanation = `Total kelereng awal = ${kantong} × ${perKantong} = ${totalAwal} butir. Sisa kelereng = ${totalAwal} - ${dibagikan} = ${sisa} butir.`;
+                            options = createStoryOptions(sisa, numOptions, correct);
+                        } else {
+                            const r = 7 * (i % 3 + 1);
+                            const luas = Math.round((22/7) * r * r);
+                            qText = `<b>[Soal Cerita No. ${i}]</b> Pak Budi membangun taman bunga berbentuk lingkaran sempurna di halaman sekolah dengan jari-jari ${r} meter. Luas lahan taman bunga yang akan ditanami rumput hias tersebut adalah... (π = 22/7)`;
+                            explanation = `Luas Lingkaran = π × r² = (22/7) × ${r} × ${r} = ${luas} m².`;
+                            options = createStoryOptions(luas, numOptions, correct);
+                        }
+                    } else if (level === 'SMP/MTs') {
+                        if (semester === 'Semester 1') {
+                            const baju = i * 2;
+                            const hargaBaju = 50000;
+                            const celana = i;
+                            const hargaCelana = 80000;
+                            const total = (baju * hargaBaju) + (celana * hargaCelana);
+
+                            qText = `<b>[Soal Cerita No. ${i}]</b> Toko Busana Nusantara menjual ${baju} potong baju seharga Rp${hargaBaju.toLocaleString('id-ID')} per potong dan ${celana} potong celana seharga Rp${hargaCelana.toLocaleString('id-ID')} per potong. Berapakah total pendapatan toko dari penjualan tersebut?`;
+                            explanation = `Total Penjualan = (${baju} × Rp${hargaBaju.toLocaleString('id-ID')}) + (${celana} × Rp${hargaCelana.toLocaleString('id-ID')}) = Rp${total.toLocaleString('id-ID')}.`;
+                            options = createMoneyOptions(total, numOptions, correct);
+                        } else {
+                            const panjang = 10 + i;
+                            const lebar = 5 + i;
+                            const tinggi = 4;
+                            const vol = panjang * lebar * tinggi;
+
+                            qText = `<b>[Soal Cerita No. ${i}]</b> Sebuah bak penampungan air di panti asuhan berbentuk balok dengan panjang ${panjang} m, lebar ${lebar} m, dan tinggi ${tinggi} m. Berapakah volume air maksimum yang dapat ditampung bak tersebut?`;
+                            explanation = `Volume Balok = Panjang × Lebar × Tinggi = ${panjang} × ${lebar} × ${tinggi} = ${vol} m³.`;
+                            options = createStoryOptions(vol, numOptions, correct);
+                        }
+                    } else { // SMA/MA
+                        if (semester === 'Semester 1') {
+                            const barang = i * 10;
+                            const biayaFixed = 500000;
+                            const biayaPerUnit = 20000;
+                            const totalBiaya = biayaFixed + (barang * biayaPerUnit);
+
+                            qText = `<b>[Soal Cerita No. ${i}]</b> Sebuah pabrik sepatu menghitung total biaya produksi bulanan dengan rumus fungsi C(x) = ${biayaFixed} + ${biayaPerUnit}x, di mana x adalah jumlah pasang sepatu yang diproduksi. Berapakah total biaya jika pabrik memproduksi ${barang} pasang sepatu?`;
+                            explanation = `C(${barang}) = ${biayaFixed} + (${biayaPerUnit} × ${barang}) = ${biayaFixed} + ${barang * biayaPerUnit} = Rp${totalBiaya.toLocaleString('id-ID')}.`;
+                            options = createMoneyOptions(totalBiaya, numOptions, correct);
+                        } else {
+                            const modal = 10000000;
+                            const bungaPersen = 5;
+                            const tahun = (i % 4) + 1;
+                            const totalBunga = modal * (bungaPersen / 100) * tahun;
+                            const totalAkhir = modal + totalBunga;
+
+                            qText = `<b>[Soal Cerita No. ${i}]</b> Pak Rahmad menabung modal usaha sebesar Rp${modal.toLocaleString('id-ID')} di bank dengan suku bunga tunggal ${bungaPersen}% per tahun. Berapakah jumlah total tabungan Pak Rahmad setelah ${tahun} tahun?`;
+                            explanation = `Bunga = Rp${modal.toLocaleString('id-ID')} × ${bungaPersen}% × ${tahun} = Rp${totalBunga.toLocaleString('id-ID')}. Total tabungan = Rp${totalAkhir.toLocaleString('id-ID')}.`;
+                            options = createMoneyOptions(totalAkhir, numOptions, correct);
+                        }
+                    }
+
+                } else { // BAHASA INDONESIA
+                    if (level === 'SD/MI') {
+                        if (semester === 'Semester 1') {
+                            qText = `<b>[Soal TKA/CBT No. ${i}]</b> Bacalah cerita berikut:<br><em>"Setiap hari Minggu pagi ke-${i}, Dito membantu ayahnya membersihkan pekarangan rumah. Mereka memotong rumput yang liar dan menyiram tanaman bunga agar tumbuh subur dan indah."</em><br>Gagasan utama dari cerita di atas adalah...`;
+                            explanation = `Gagasan utama menceritakan kegiatan rutin Dito membantu ayahnya membersihkan pekarangan rumah.`;
+                        } else {
+                            qText = `<b>[Soal TKA/CBT No. ${i}]</b> Bacalah penggalan dongeng berikut:<br><em>"Kelinci yang sombong menantang Kura-kura berlari. Di tengah jalan, Kelinci tertidur lelap sehingga Kura-kura yang tekun berhasil mendahului dan menang."</em><br>Pesan moral (amanat) cerita tersebut adalah...`;
+                            explanation = `Amanat cerita adalah jangan bersikap sombong dan tetaplah tekun serta pantang menyerah.`;
+                        }
+                    } else if (level === 'SMP/MTs') {
+                        if (semester === 'Semester 1') {
+                            qText = `<b>[Soal TKA/CBT No. ${i}]</b> Bacalah laporan observasi berikut:<br><em>"Pengamatan ke-${i} menunjukkan bahwa penumpukan sampah plastik di daerah aliran sungai memicu banjir saat musim hujan. Masyarakat diimbau menerapkan pemilahan sampah dari rumah."</em><br>Ringkasan yang tepat untuk paragraf di atas adalah...`;
+                            explanation = `Ringkasan memuat inti masalah (sampah plastik pemicu banjir) dan solusi (pemilahan sampah).`;
+                        } else {
+                            qText = `<b>[Soal TKA/CBT No. ${i}]</b> Perhatikan kutipan surat resmi sekolah berikut:<br><em>"Dengan hormat, kami mengundang Bapak/Ibu Orang Tua/Wali Murid untuk hadir pada rapat koordinasi ujian..."</em><br>Bagian struktur surat resmi tersebut merupakan...`;
+                            explanation = `Penggalan tersebut merupakan bagian Isi Surat / Pembuka Surat Resmi.`;
+                        }
+                    } else { // SMA/MA
+                        if (semester === 'Semester 1') {
+                            qText = `<b>[Soal TKA/CBT No. ${i}]</b> Bacalah teks artikel opini berikut mengenai isu lingkungan ke-${i}:<br><em>"Penerapan energi terbarukan di Indonesia harus dipercepat untuk mengurangi emisi karbon global secara signifikan."</em><br>Opini penulis dalam teks di atas didasari oleh...`;
+                            explanation = `Opini didasari oleh urgensi penyelamatan lingkungan dari emisi karbon global.`;
+                        } else {
+                            qText = `<b>[Soal TKA/CBT No. ${i}]</b> Perhatikan kutipan karya ilmiah berikut tentang metodologi penelitian ke-${i}. Kalimat yang memuat ragam bahasa baku dan objektif adalah...`;
+                            explanation = `Bahasa karya ilmiah harus lugas, baku, netral, dan terhindar dari ungkapan subjektif.`;
+                        }
+                    }
+
+                    options = generateIndoOptions(i, numOptions, correct);
+                }
+
+                list.push({
+                    id: i,
+                    text: qText,
+                    options: options,
+                    correct: correct,
+                    explanation: explanation
+                });
+            }
+
+            return list;
+        }
+
+        function createStoryOptions(correctVal, numOpts, correctIdx) {
+            let opts = [];
+            for (let k = 0; k < numOpts; k++) {
+                if (k === correctIdx) {
+                    opts.push(`${correctVal}`);
+                } else {
+                    const diff = (k - correctIdx) * 5;
+                    opts.push(`${correctVal + (diff === 0 ? 3 : diff)}`);
+                }
+            }
+            return opts;
+        }
+
+        function createMoneyOptions(correctVal, numOpts, correctIdx) {
+            let opts = [];
+            for (let k = 0; k < numOpts; k++) {
+                if (k === correctIdx) {
+                    opts.push(`Rp${correctVal.toLocaleString('id-ID')}`);
+                } else {
+                    const diff = (k - correctIdx) * 10000;
+                    const val = Math.max(10000, correctVal + (diff === 0 ? 25000 : diff));
+                    opts.push(`Rp${val.toLocaleString('id-ID')}`);
+                }
+            }
+            return opts;
+        }
+
+        function generateIndoOptions(qNum, numOpts, correctIdx) {
+            const pool = [
+                "Kegiatan rutin bersama keluarga untuk menjaga kebersihan dan kerapian lingkungan.",
+                "Jangan bersikap sombong dan senantiasa tekun dalam berusaha.",
+                "Pentingnya kesadaran menjaga lingkungan demi mencegah bahaya banjir.",
+                "Mengajak seluruh elemen masyarakat berpartisipasi aktif.",
+                "Informasi faktual yang disajikan secara sistematis dan lugas."
+            ];
+
+            let opts = [];
+            for (let k = 0; k < numOpts; k++) {
+                if (k === correctIdx) {
+                    opts.push(pool[k]);
+                } else {
+                    opts.push(pool[(k + 2) % pool.length]);
+                }
+            }
+            return opts;
+        }
+
+        /* ================= UI EVENT HANDLERS ================= */
+        function updateLevelUI() {
+            const options = document.querySelectorAll('.level-option');
+            options.forEach(opt => {
+                const radio = opt.querySelector('input[type="radio"]');
+                if (radio.checked) {
+                    opt.classList.add('border-pusmendik-blue', 'bg-blue-50/70', 'text-pusmendik-navy', 'font-bold');
+                    opt.classList.remove('border-gray-200');
+                } else {
+                    opt.classList.remove('border-pusmendik-blue', 'bg-blue-50/70', 'text-pusmendik-navy', 'font-bold');
+                    opt.classList.add('border-gray-200');
+                }
+            });
+        }
+
+        function handleStartExam(event) {
+            event.preventDefault();
+            const name = document.getElementById('studentName').value.trim();
+            const school = document.getElementById('schoolName').value.trim();
+            const level = document.querySelector('input[name="level"]:checked').value;
+            const subject = document.getElementById('selectSubject').value;
+            const semester = document.getElementById('selectSemester').value;
+
+            if (!name || !school) return;
+
+            state.studentName = name;
+            state.schoolName = school;
+            state.level = level;
+            state.subject = subject;
+            state.semester = semester;
+
+            // Generate TEPAT 30 Soal Cerita
+            state.questions = generateExact30Questions(level, subject, semester);
+            state.userAnswers = new Array(30).fill(null);
+            state.doubtfulState = new Array(30).fill(false);
+            state.currentQuestionIndex = 0;
+            state.timeRemaining = 75 * 60;
+
+            // Update Header & Layout Ujian TKA/CBT
+            document.getElementById('displayExamBadge').innerText = `${level} - ${subject} - ${semester}`;
+            document.getElementById('headerSubTitle').innerText = `${name} | ${school}`;
+            document.getElementById('headerExamInfo').classList.remove('hidden');
+
+            document.getElementById('pageRegistration').classList.add('hidden');
+            document.getElementById('pageExam').classList.remove('hidden');
+
+            renderQuestion();
+            renderQuestionGrid();
+            startTimer();
+        }
+
+        /* ================= RENDER SOAL TKA/CBT ================= */
+        function renderQuestion() {
+            const q = state.questions[state.currentQuestionIndex];
+            const totalQ = state.questions.length;
+
+            document.getElementById('currentQuestionNumDisplay').innerText = state.currentQuestionIndex + 1;
+
+            const textContainer = document.getElementById('questionTextContainer');
+            textContainer.innerHTML = q.text;
+
+            const optContainer = document.getElementById('optionsContainer');
+            optContainer.innerHTML = '';
+
+            const optionLabels = ['A', 'B', 'C', 'D', 'E'];
+
+            q.options.forEach((optText, idx) => {
+                const isSelected = state.userAnswers[state.currentQuestionIndex] === idx;
+
+                const optEl = document.createElement('div');
+                optEl.className = `p-3.5 sm:p-4 border-2 rounded-xl cursor-pointer flex items-center space-x-3 transition ${
+                    isSelected 
+                        ? 'border-pusmendik-blue bg-blue-50/80 font-semibold text-pusmendik-navy shadow-sm' 
+                        : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
+                }`;
+                optEl.onclick = () => selectOption(idx);
+
+                optEl.innerHTML = `
+                    <div class="w-7 h-7 sm:w-8 sm:h-8 rounded-full border-2 flex items-center justify-center font-bold text-xs ${
+                        isSelected 
+                            ? 'border-pusmendik-blue bg-pusmendik-blue text-white' 
+                            : 'border-gray-300 text-gray-600 bg-white'
+                    }">
+                        ${optionLabels[idx]}
+                    </div>
+                    <div class="text-xs sm:text-sm flex-grow">${optText}</div>
+                `;
+                optContainer.appendChild(optEl);
+            });
+
+            document.getElementById('chkDoubtful').checked = state.doubtfulState[state.currentQuestionIndex];
+
+            // Navigasi Tombol Prev / Next
+            const btnPrev = document.getElementById('btnPrev');
+            btnPrev.disabled = state.currentQuestionIndex === 0;
+
+            const btnNextText = document.getElementById('btnNextText');
+            const btnNextIcon = document.getElementById('btnNextIcon');
+
+            if (state.currentQuestionIndex === totalQ - 1) {
+                btnNextText.innerText = "Selesai Ujian";
+                btnNextIcon.className = "fa-solid fa-check-double";
+            } else {
+                btnNextText.innerText = "Lanjut";
+                btnNextIcon.className = "fa-solid fa-chevron-right";
+            }
+
+            renderQuestionGrid();
+        }
+
+        function selectOption(optionIndex) {
+            state.userAnswers[state.currentQuestionIndex] = optionIndex;
+            renderQuestion();
+        }
+
+        function toggleDoubtful() {
+            state.doubtfulState[state.currentQuestionIndex] = document.getElementById('chkDoubtful').checked;
+            renderQuestionGrid();
+        }
+
+        function navigateQuestion(dir) {
+            const target = state.currentQuestionIndex + dir;
+
+            if (target >= state.questions.length) {
+                openConfirmModal();
+                return;
+            }
+
+            if (target >= 0 && target < state.questions.length) {
+                state.currentQuestionIndex = target;
+                renderQuestion();
+            }
+        }
+
+        function jumpToQuestion(index) {
+            state.currentQuestionIndex = index;
+            renderQuestion();
+            if (window.innerWidth < 1024) {
+                const sidebar = document.getElementById('sidebarGrid');
+                sidebar.classList.add('hidden');
+            }
+        }
+
+        /* ================= GRID DAFTAR SOAL TKA/CBT ================= */
+        function renderQuestionGrid() {
+            const gridContainer = document.getElementById('questionGrid');
+            gridContainer.innerHTML = '';
+            let answeredCount = 0;
+
+            state.questions.forEach((_, idx) => {
+                const isCurrent = state.currentQuestionIndex === idx;
+                const isAnswered = state.userAnswers[idx] !== null;
+                const isDoubtful = state.doubtfulState[idx];
+
+                if (isAnswered) answeredCount++;
+
+                let bgClass = "bg-white text-gray-700 border-gray-300";
+                if (isDoubtful) {
+                    bgClass = "bg-amber-400 text-gray-900 border-amber-500 font-bold";
+                } else if (isAnswered) {
+                    bgClass = "bg-pusmendik-green text-white border-pusmendik-green font-bold";
+                }
+
+                let activeRing = isCurrent ? "ring-2 ring-offset-2 ring-pusmendik-navy scale-105 z-10" : "";
+
+                const btn = document.createElement('button');
+                btn.className = `h-9 rounded-lg text-xs font-bold border flex items-center justify-center transition shadow-sm ${bgClass} ${activeRing}`;
+                btn.innerText = idx + 1;
+                btn.onclick = () => jumpToQuestion(idx);
+
+                gridContainer.appendChild(btn);
+            });
+
+            document.getElementById('answeredCountBadge').innerText = `${answeredCount}/30`;
+        }
+
+        function toggleGridMobile() {
+            const sidebar = document.getElementById('sidebarGrid');
+            sidebar.classList.toggle('hidden');
+        }
+
+        /* ================= TIMER UTAMA ================= */
+        function startTimer() {
+            clearInterval(state.timerInterval);
+            const timerContainer = document.getElementById('timerContainer');
+
+            state.timerInterval = setInterval(() => {
+                state.timeRemaining--;
+
+                const mins = Math.floor(state.timeRemaining / 60);
+                const secs = state.timeRemaining % 60;
+                document.getElementById('timerDisplay').innerText = 
+                    `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+
+                if (state.timeRemaining < 600) {
+                    timerContainer.className = "bg-rose-600 border border-rose-400/40 px-3 py-1.5 rounded-lg flex items-center space-x-2 animate-pulse";
+                }
+
+                if (state.timeRemaining <= 0) {
+                    clearInterval(state.timerInterval);
+                    alert("Waktu ujian 75 menit telah habis!");
+                    finishExam();
+                }
+            }, 1000);
+        }
+
+        /* ================= CONTROLLER UKURAN TEKS ================= */
+        function changeFontSize(val) {
+            const qContainer = document.getElementById('questionTextContainer');
+            if (val === 0) {
+                qContainer.style.fontSize = '14px';
+            } else if (val === -1) {
+                qContainer.style.fontSize = '12px';
+            } else if (val === 1) {
+                qContainer.style.fontSize = '18px';
+            }
+        }
+
+        /* ================= MODAL & HASIL TKA/CBT ================= */
+        function openConfirmModal() {
+            const modal = document.getElementById('modalConfirm');
+            const box = document.getElementById('modalBox');
+
+            const emptyCount = state.userAnswers.filter(a => a === null).length;
+            const doubtfulCount = state.doubtfulState.filter(d => d === true).length;
+
+            let msg = "Apakah Anda yakin ingin menyelesaikan Ujian TKA/CBT ini?";
+            if (emptyCount > 0 || doubtfulCount > 0) {
+                msg = `Perhatian: Masih ada ${emptyCount} soal belum dijawab dan ${doubtfulCount} soal ragu-ragu dari total 30 soal TKA/CBT. Yakin selesai?`;
+            }
+
+            document.getElementById('modalConfirmMessage').innerText = msg;
+            modal.classList.remove('hidden');
+            setTimeout(() => {
+                box.classList.remove('scale-95', 'opacity-0');
+                box.classList.add('scale-100', 'opacity-100');
+            }, 10);
+        }
+
+        function closeConfirmModal() {
+            const modal = document.getElementById('modalConfirm');
+            const box = document.getElementById('modalBox');
+            box.classList.remove('scale-100', 'opacity-100');
+            box.classList.add('scale-95', 'opacity-0');
+            setTimeout(() => modal.classList.add('hidden'), 200);
+        }
+
+        function finishExam() {
+            clearInterval(state.timerInterval);
+            closeConfirmModal();
+
+            document.getElementById('headerExamInfo').classList.add('hidden');
+            document.getElementById('pageExam').classList.add('hidden');
+
+            let correctCount = 0;
+            let wrongCount = 0;
+            let emptyCount = 0;
+            let doubtfulCount = 0;
+
+            state.questions.forEach((q, idx) => {
+                const ans = state.userAnswers[idx];
+                if (state.doubtfulState[idx]) doubtfulCount++;
+
+                if (ans === null) {
+                    emptyCount++;
+                } else if (ans === q.correct) {
+                    correctCount++;
+                } else {
+                    wrongCount++;
+                }
+            });
+
+            const score = Math.round((correctCount / 30) * 100);
+
+            document.getElementById('resultStudentDetail').innerText = `${state.studentName} | ${state.schoolName} | ${state.level} (${state.subject} - ${state.semester})`;
+            document.getElementById('finalScore').innerText = score;
+            document.getElementById('countCorrect').innerText = correctCount;
+            document.getElementById('countWrong').innerText = wrongCount;
+            document.getElementById('countDoubtful').innerText = doubtfulCount;
+            document.getElementById('countEmpty').innerText = emptyCount;
+
+            const pred = document.getElementById('scorePredicate');
+            if (score >= 85) {
+                pred.innerText = "Sangat Mahir (Istimewa)";
+                pred.className = "text-xs font-bold mt-2 px-3 py-1 rounded-full inline-block bg-emerald-100 text-emerald-800";
+            } else if (score >= 65) {
+                pred.innerText = "Lulus Standar TKA/CBT";
+                pred.className = "text-xs font-bold mt-2 px-3 py-1 rounded-full inline-block bg-blue-100 text-pusmendik-navy";
+            } else {
+                pred.innerText = "Perlu Pembinaan Khusus";
+                pred.className = "text-xs font-bold mt-2 px-3 py-1 rounded-full inline-block bg-amber-100 text-amber-900";
+            }
+
+            renderDiscussion();
+            document.getElementById('pageResult').classList.remove('hidden');
+        }
+
+        function renderDiscussion() {
+            const container = document.getElementById('discussionContainer');
+            container.innerHTML = '';
+            const optionLabels = ['A', 'B', 'C', 'D', 'E'];
+
+            state.questions.forEach((q, idx) => {
+                const userAns = state.userAnswers[idx];
+                const isCorrect = userAns === q.correct;
+                const isAnswered = userAns !== null;
+
+                let badge = '';
+                if (isCorrect) {
+                    badge = '<span class="bg-emerald-100 text-emerald-800 text-xs font-bold px-2.5 py-1 rounded-md"><i class="fa-solid fa-check mr-1"></i>Benar</span>';
+                } else if (isAnswered) {
+                    badge = '<span class="bg-rose-100 text-rose-800 text-xs font-bold px-2.5 py-1 rounded-md"><i class="fa-solid fa-xmark mr-1"></i>Salah</span>';
+                } else {
+                    badge = '<span class="bg-gray-200 text-gray-700 text-xs font-bold px-2.5 py-1 rounded-md">Kosong</span>';
+                }
+
+                const item = document.createElement('div');
+                item.className = "border border-gray-200 rounded-2xl p-4 sm:p-5 bg-gray-50/50 space-y-3";
+                item.innerHTML = `
+                    <div class="flex items-center justify-between">
+                        <span class="font-bold text-xs sm:text-sm text-pusmendik-navy">Soal TKA/CBT Nomor ${idx + 1}</span>
+                        ${badge}
+                    </div>
+                    <div class="text-xs sm:text-sm text-gray-800 leading-relaxed font-medium">${q.text}</div>
+                    <div class="text-xs space-y-1 bg-white p-3 rounded-xl border border-gray-200">
+                        <div>Jawaban Anda: <span class="font-bold ${isCorrect ? 'text-emerald-600' : 'text-rose-600'}">${isAnswered ? optionLabels[userAns] + '. ' + q.options[userAns] : '-'}</span></div>
+                        <div>Kunci Jawaban TKA/CBT: <span class="font-bold text-emerald-600">${optionLabels[q.correct]}. ${q.options[q.correct]}</span></div>
+                    </div>
+                    <div class="bg-blue-50/80 border-l-4 border-pusmendik-blue p-3 rounded-xl text-xs text-pusmendik-navy">
+                        <span class="font-bold block mb-0.5">Pembahasan TKA/CBT:</span>
+                        ${q.explanation}
+                    </div>
+                `;
+                container.appendChild(item);
+            });
+        }
+
+        function restartExam() {
+            document.getElementById('headerSubTitle').innerText = "Sistem Ujian Berbasis Komputer (30 Soal Cerita)";
+            document.getElementById('pageResult').classList.add('hidden');
+            document.getElementById('pageRegistration').classList.remove('hidden');
+            updateLevelUI();
+        }
+
+        window.onload = function() {
+            updateLevelUI();
+        };
+    </script>
+</body>
+</html>
